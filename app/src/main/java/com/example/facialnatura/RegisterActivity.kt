@@ -9,15 +9,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import com.example.facialnatura.data.repository.UserRepository
-import com.example.facialnatura.ml.FaceLandmarkHelper
+import com.example.facialnatura.ml.FaceEmbeddingHelper
 import com.example.facialnatura.viewModel.RegisterViewModel
 import com.example.facialnatura.viewModel.RegisterViewModelFactory
 import com.example.facialnatura.screen.RegisterScreen
 
 class RegisterActivity : ComponentActivity() {
 
-    private val landmarkHelper by lazy { FaceLandmarkHelper() }
-    private val repository by lazy { UserRepository(landmarkHelper) }
+    private val embeddingHelper by lazy { FaceEmbeddingHelper(applicationContext) }
+    private val repository by lazy { UserRepository(embeddingHelper) }
     private val viewModel: RegisterViewModel by viewModels {
         RegisterViewModelFactory(repository)
     }
@@ -43,7 +43,7 @@ class RegisterActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        landmarkHelper.close()
+        embeddingHelper.close()
     }
 
     private fun hasCameraPermission() =

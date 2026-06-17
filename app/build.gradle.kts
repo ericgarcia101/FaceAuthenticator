@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 }
 
@@ -9,11 +10,11 @@ if (file("google-services.json").exists()) {
 
 android {
     namespace = "com.example.facialnatura"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.facialnatura"
-        minSdk = 24
+        minSdk = 29
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -40,13 +41,18 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+
     androidResources {
         noCompress += "tflite"
     }
 }
 
-kotlin {
-    jvmToolchain(11)
+configurations.all {
+    exclude(group = "com.google.guava", module = "listenablefuture")
+    exclude(group = "com.google.inject")  // Guice usa MethodHandle (API 26+), incompatible con minSdk 24
 }
 
 dependencies {
@@ -81,11 +87,16 @@ dependencies {
     // ML Kit detección facial
     implementation(libs.mlkit.face.detection)
 
+    // TFLite – motor de inferencia para FaceNet (CPU, compatible con minSdk 24)
+    implementation("org.tensorflow:tensorflow-lite:2.17.0")
+
     // CameraX
     implementation(libs.camerax.core)
     implementation(libs.camerax.camera2)
     implementation(libs.camerax.lifecycle)
     implementation(libs.camerax.view)
+    implementation("androidx.concurrent:concurrent-futures-ktx:1.2.0")
+    implementation("com.google.guava:guava:32.1.3-android")
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
