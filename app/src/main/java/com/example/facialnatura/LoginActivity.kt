@@ -9,7 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
-import com.example.facialnatura.ml.FaceLandmarkHelper
+import com.example.facialnatura.ml.FaceEmbeddingHelper
 import com.example.facialnatura.data.repository.UserRepository
 import com.example.facialnatura.viewModel.LoginViewModel
 import com.example.facialnatura.viewModel.LoginViewModelFactory
@@ -17,8 +17,8 @@ import com.example.facialnatura.screen.LoginScreen
 
 class LoginActivity : ComponentActivity() {
 
-    private val landmarkHelper by lazy { FaceLandmarkHelper() }
-    private val repository by lazy { UserRepository(landmarkHelper) }
+    private val embeddingHelper by lazy { FaceEmbeddingHelper(applicationContext) }
+    private val repository by lazy { UserRepository(embeddingHelper) }
     private val viewModel: LoginViewModel by viewModels {
         LoginViewModelFactory(repository)
     }
@@ -58,7 +58,7 @@ class LoginActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        landmarkHelper.close()
+        embeddingHelper.close()
     }
 
     private fun hasCameraPermission() =

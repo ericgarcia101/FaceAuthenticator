@@ -14,6 +14,12 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetector
 import com.google.mlkit.vision.face.FaceDetectorOptions
+import androidx.concurrent.futures.await
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -27,6 +33,7 @@ class CameraManager(
     private var imageAnalysis: ImageAnalysis? = null
     private var imageCapture: ImageCapture? = null
     private val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
+    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     private val faceDetector: FaceDetector = FaceDetection.getClient(
         FaceDetectorOptions.Builder()
@@ -43,11 +50,14 @@ class CameraManager(
     }
 
     private fun setUpCamera() {
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-        cameraProviderFuture.addListener({
-            cameraProvider = cameraProviderFuture.get()
-            startCamera()
-        }, ContextCompat.getMainExecutor(context))
+        scope.launch {
+            try {
+                cameraProvider = ProcessCameraProvider.getInstance(context).await()
+                startCamera()
+            } catch (e: Exception) {
+                onError?.invoke("Error al obtener cameraProvider: ${e.message}")
+            }
+        }
     }
 
     fun startCamera() {
@@ -151,6 +161,7 @@ class CameraManager(
     }
 
     fun close() {
+        scope.cancel()
         try {
             val toUnbind = listOfNotNull(preview, imageCapture, imageAnalysis)
             if (toUnbind.isNotEmpty()) {
